@@ -13,6 +13,8 @@ import NotFound from "./pages/NotFound.tsx";
 import { AppLayout } from "./components/AppLayout.tsx";
 
 const queryClient = new QueryClient();
+// Only on mvp
+const defaultRootRoute = "/login";
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -21,7 +23,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/" element={<Navigate to={defaultRootRoute} replace />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Navigate to="/login" replace />} />
           <Route element={<AppLayout />}>
