@@ -7,7 +7,7 @@ export const mockSettings: AppSettings = {
     email: "joao@example.com",
     phone: "+55 (11) 99999-9999",
   },
-  roommate: {
+  partner: {
     name: "Alex Silva",
     email: "alex@example.com",
     connectedSince: "Setembro de 2025",

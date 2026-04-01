@@ -17,7 +17,7 @@ interface SettleUpModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   currentBalance: number;
-  roommateName: string;
+  partnerName: string;
   onConfirmPayment: (amount: number) => void;
 }
 
@@ -27,7 +27,7 @@ export const SettleUpModal = ({
   open,
   onOpenChange,
   currentBalance,
-  roommateName,
+  partnerName,
   onConfirmPayment,
 }: SettleUpModalProps) => {
   const [isEditingAmount, setIsEditingAmount] = useState(false);
@@ -64,7 +64,7 @@ export const SettleUpModal = ({
           </div>
           <DialogTitle>Confirmar acerto de contas</DialogTitle>
           <DialogDescription>
-            Confirme o valor pago por fora do app para atualizar o saldo com {roommateName}.
+            Confirme o valor pago por fora do app para atualizar o saldo com {partnerName}.
           </DialogDescription>
         </DialogHeader>
 

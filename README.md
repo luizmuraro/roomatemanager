@@ -1,6 +1,6 @@
-# RoomMate Manager
+# House Share
 
-RoomMate Manager is a mobile-first web app for shared household finance between roommates.
+House Share is a mobile-first web app for shared household finance between people sharing a home.
 It helps track expenses, split values, manage shopping items, store receipts, and keep account settlements clear.
 
 Primary UX language is Portuguese (Brasil), with BRL currency formatting.

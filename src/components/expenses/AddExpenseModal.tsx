@@ -28,7 +28,7 @@ interface AddExpenseModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onAddExpense: (expense: Expense) => void;
-  roommateName: string;
+  partnerName: string;
 }
 
 const getTodayBRDate = () => {
@@ -65,7 +65,7 @@ const initialDraft = (): ExpenseDraft => ({
   splitRatio: 0.5,
 });
 
-export const AddExpenseModal = ({ open, onOpenChange, onAddExpense, roommateName }: AddExpenseModalProps) => {
+export const AddExpenseModal = ({ open, onOpenChange, onAddExpense, partnerName }: AddExpenseModalProps) => {
   const [step, setStep] = useState<1 | 2>(1);
   const [draft, setDraft] = useState<ExpenseDraft>(initialDraft());
 
@@ -82,7 +82,7 @@ export const AddExpenseModal = ({ open, onOpenChange, onAddExpense, roommateName
   }, [draft.amount]);
 
   const mySplitCents = useMemo(() => Math.round(amountCents * draft.splitRatio), [amountCents, draft.splitRatio]);
-  const roommateSplitCents = Math.max(0, amountCents - mySplitCents);
+  const partnerSplitCents = Math.max(0, amountCents - mySplitCents);
 
   const canContinue = draft.description.trim().length > 2 && amountCents > 0;
 
@@ -95,7 +95,7 @@ export const AddExpenseModal = ({ open, onOpenChange, onAddExpense, roommateName
       paidBy: draft.paidBy,
       splitRatio: draft.splitRatio,
       date: toIsoDate(draft.date),
-      roommateName,
+      partnerName,
       status: "pendente",
     };
 
@@ -187,14 +187,14 @@ export const AddExpenseModal = ({ open, onOpenChange, onAddExpense, roommateName
                   <Label htmlFor="expense-paid-by">Quem pagou</Label>
                   <Select
                     value={draft.paidBy}
-                    onValueChange={(value) => setDraft((prev) => ({ ...prev, paidBy: value as "me" | "roommate" }))}
+                    onValueChange={(value) => setDraft((prev) => ({ ...prev, paidBy: value as "me" | "partner" }))}
                   >
                     <SelectTrigger id="expense-paid-by">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="me">Você</SelectItem>
-                      <SelectItem value="roommate">{roommateName}</SelectItem>
+                      <SelectItem value="partner">{partnerName}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -257,8 +257,8 @@ export const AddExpenseModal = ({ open, onOpenChange, onAddExpense, roommateName
                   <span className="font-semibold text-gray-900">{formatCurrencyBRLFromCents(mySplitCents)}</span>
                 </div>
                 <div className="mt-2 flex items-center justify-between text-sm">
-                  <span className="text-gray-600">{roommateName}</span>
-                  <span className="font-semibold text-gray-900">{formatCurrencyBRLFromCents(roommateSplitCents)}</span>
+                  <span className="text-gray-600">{partnerName}</span>
+                  <span className="font-semibold text-gray-900">{formatCurrencyBRLFromCents(partnerSplitCents)}</span>
                 </div>
               </div>
 

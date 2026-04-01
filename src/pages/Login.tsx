@@ -27,7 +27,7 @@ const Login = () => {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary mb-4">
             <Home className="w-8 h-8 text-primary-foreground" />
           </div>
-          <h1 className="text-2xl font-bold text-foreground">Roommate Manager</h1>
+          <h1 className="text-2xl font-bold text-foreground">House Share</h1>
           <p className="text-muted-foreground mt-1">Manage your shared expenses</p>
         </div>
 

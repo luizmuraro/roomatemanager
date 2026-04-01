@@ -12,7 +12,7 @@ export const Expenses = () => {
   const [isSettleUpOpen, setIsSettleUpOpen] = useState(false);
 
   const outstandingCents = expenses
-    .filter((expense) => expense.paidBy === "roommate" && expense.status !== "quitado")
+    .filter((expense) => expense.paidBy === "partner" && expense.status !== "quitado")
     .reduce((acc, expense) => acc + getMyShare(expense), 0);
 
   const outstandingBalance = outstandingCents / 100;
@@ -26,7 +26,7 @@ export const Expenses = () => {
 
     setExpenses((prev) =>
       prev.map((expense) => {
-        if (remainingCents <= 0 || expense.paidBy !== "roommate" || expense.status === "quitado") {
+        if (remainingCents <= 0 || expense.paidBy !== "partner" || expense.status === "quitado") {
           return expense;
         }
 
@@ -54,13 +54,13 @@ export const Expenses = () => {
         open={isAddModalOpen}
         onOpenChange={setIsAddModalOpen}
         onAddExpense={handleAddExpense}
-        roommateName="Alex Silva"
+        partnerName="Alex Silva"
       />
       <SettleUpModal
         open={isSettleUpOpen}
         onOpenChange={setIsSettleUpOpen}
         currentBalance={-outstandingBalance}
-        roommateName="Alex Silva"
+        partnerName="Alex Silva"
         onConfirmPayment={handleConfirmSettleUp}
       />
     </div>

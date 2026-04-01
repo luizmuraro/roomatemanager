@@ -230,7 +230,7 @@ const Dashboard = () => {
           </div>
 
           <div className="rounded-2xl bg-white p-5 shadow-xl ring-1 ring-slate-100">
-            <h2 className="mb-4 text-lg font-semibold text-gray-900">Saldo com roommate</h2>
+            <h2 className="mb-4 text-lg font-semibold text-gray-900">Saldo da House Share</h2>
 
             <div className="flex items-center justify-between rounded-xl bg-slate-50 p-4 shadow-sm">
               <div className="flex items-center gap-3">
@@ -239,7 +239,7 @@ const Dashboard = () => {
                 </div>
                 <div>
                   <p className="font-medium text-gray-900">Alex Silva</p>
-                  <p className="text-sm text-gray-500">Seu roommate</p>
+                  <p className="text-sm text-gray-500">Seu parceiro de casa</p>
                 </div>
               </div>
 
@@ -282,13 +282,13 @@ const Dashboard = () => {
         open={isAddExpenseOpen}
         onOpenChange={setIsAddExpenseOpen}
         onAddExpense={handleAddExpense}
-        roommateName="Alex Silva"
+        partnerName="Alex Silva"
       />
       <SettleUpModal
         open={isSettleUpOpen}
         onOpenChange={setIsSettleUpOpen}
         currentBalance={yourBalance}
-        roommateName="Alex Silva"
+        partnerName="Alex Silva"
         onConfirmPayment={handleConfirmSettleUp}
       />
     </div>

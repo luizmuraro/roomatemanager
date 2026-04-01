@@ -45,7 +45,7 @@ export const ExpenseCard = ({ expense }: ExpenseCardProps) => {
           <Badge className={statusClassMap[expense.status]}>{expenseStatusLabelMap[expense.status]}</Badge>
           <span className="inline-flex items-center gap-1 text-xs text-gray-500">
             <UserRound className="h-3.5 w-3.5" />
-            {expense.paidBy === "me" ? "Você" : expense.roommateName}
+            {expense.paidBy === "me" ? "Você" : expense.partnerName}
           </span>
           <span className="text-xs text-gray-500">•</span>
           <span className={`text-xs font-semibold ${isCredit ? "text-green-600" : "text-red-600"}`}>
@@ -69,7 +69,7 @@ export const ExpenseCard = ({ expense }: ExpenseCardProps) => {
             </span>
             <span className="inline-flex items-center gap-1">
               <UserRound className="h-3.5 w-3.5" />
-              {expense.paidBy === "me" ? "Você" : expense.roommateName}
+              {expense.paidBy === "me" ? "Você" : expense.partnerName}
             </span>
             <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100">{expenseCategoryLabelMap[expense.category]}</Badge>
           </div>

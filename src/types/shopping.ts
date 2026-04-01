@@ -4,6 +4,6 @@ export interface ShoppingItem {
   quantity: number;
   unit: string;
   checked: boolean;
-  addedBy: "me" | "roommate";
+  addedBy: "me" | "partner";
   emoji: string;
 }

@@ -5,7 +5,7 @@ export interface ProfileSettings {
   phone: string;
 }
 
-export interface RoommateSettings {
+export interface PartnerSettings {
   name: string;
   email: string;
   connectedSince: string;
@@ -25,7 +25,7 @@ export interface NotificationSettings {
 
 export interface AppSettings {
   profile: ProfileSettings;
-  roommate: RoommateSettings;
+  partner: PartnerSettings;
   privacy: PrivacySettings;
   notifications: NotificationSettings;
 }

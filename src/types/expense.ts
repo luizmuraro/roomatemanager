@@ -13,10 +13,10 @@ export interface Expense {
   description: string;
   amount: number;
   category: ExpenseCategory;
-  paidBy: "me" | "roommate";
+  paidBy: "me" | "partner";
   splitRatio: number;
   date: string;
-  roommateName: string;
+  partnerName: string;
   status: ExpenseStatus;
   receiptUrl?: string;
 }
@@ -25,7 +25,7 @@ export interface ExpenseDraft {
   description: string;
   amount: string;
   category: ExpenseCategory;
-  paidBy: "me" | "roommate";
+  paidBy: "me" | "partner";
   date: string;
   splitType: "equal" | "custom";
   splitRatio: number;

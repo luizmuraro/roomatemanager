@@ -77,7 +77,7 @@ export const ShoppingList = ({ initialItems }: ShoppingListProps) => {
         <div>
           <h1 className="text-xl font-bold text-gray-900 md:text-2xl">Lista de compras</h1>
           <div className="mt-1 flex items-center gap-3 text-sm text-gray-600">
-            <p>Lista colaborativa com seu roommate</p>
+            <p>Lista colaborativa da House Share</p>
             <span className="inline-flex items-center gap-1 text-green-600">
               <span className="h-2 w-2 animate-pulse rounded-full bg-green-500" />
               Tempo real

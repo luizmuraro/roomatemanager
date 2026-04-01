@@ -2,12 +2,12 @@ import { useMemo, useState } from "react";
 import { getMyShare } from "@/lib/expense";
 import type { Expense, ExpenseCategory, ExpenseStatus } from "@/types/expense";
 
-export type QuickFilter = "all" | "me-paid" | "roommate-paid" | "high-value" | "pending";
+export type QuickFilter = "all" | "me-paid" | "partner-paid" | "high-value" | "pending";
 
 export const quickFilterLabels: Record<QuickFilter, string> = {
   all: "Todos",
   "me-paid": "Você pagou",
-  "roommate-paid": "Parceiro pagou",
+  "partner-paid": "Parceiro pagou",
   "high-value": "Acima de R$ 100",
   pending: "Em aberto",
 };
@@ -22,7 +22,7 @@ export const useExpenseFilters = (expenses: Expense[]) => {
     return expenses.filter((expense) => {
       const searchMatch =
         expense.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        expense.roommateName.toLowerCase().includes(searchTerm.toLowerCase());
+        expense.partnerName.toLowerCase().includes(searchTerm.toLowerCase());
 
       const categoryMatch = category === "all" || expense.category === category;
       const statusMatch = status === "all" || expense.status === status;
@@ -30,7 +30,7 @@ export const useExpenseFilters = (expenses: Expense[]) => {
       const quickMatch = (() => {
         if (quickFilter === "all") return true;
         if (quickFilter === "me-paid") return expense.paidBy === "me";
-        if (quickFilter === "roommate-paid") return expense.paidBy === "roommate";
+        if (quickFilter === "partner-paid") return expense.paidBy === "partner";
         if (quickFilter === "high-value") return expense.amount > 10000;
         return expense.status !== "quitado";
       })();
@@ -42,7 +42,7 @@ export const useExpenseFilters = (expenses: Expense[]) => {
   const summary = useMemo(() => {
     const totalAmount = filteredExpenses.reduce((acc, item) => acc + item.amount, 0);
     const youOwe = filteredExpenses
-      .filter((item) => item.paidBy === "roommate" && item.status !== "quitado")
+      .filter((item) => item.paidBy === "partner" && item.status !== "quitado")
       .reduce((acc, item) => acc + getMyShare(item), 0);
     const pendingCount = filteredExpenses.filter((item) => item.status !== "quitado").length;
 
