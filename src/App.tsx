@@ -9,7 +9,6 @@ import Expenses from "./pages/Expenses.tsx";
 import Receipts from "./pages/Receipts.tsx";
 import Settings from "./pages/Settings.tsx";
 import Shopping from "./pages/Shopping.tsx";
-import NotFound from "./pages/NotFound.tsx";
 import { AppLayout } from "./components/AppLayout.tsx";
 
 const queryClient = new QueryClient();
@@ -33,7 +32,7 @@ const App = () => (
             <Route path="/receipts" element={<Receipts />} />
             <Route path="/settings" element={<Settings />} />
           </Route>
-          <Route path="*" element={<NotFound />} />
+          <Route path="*" element={<Navigate to={defaultRootRoute} replace />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
