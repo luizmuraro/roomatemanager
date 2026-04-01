@@ -14,8 +14,21 @@ export const ShoppingItem = ({ item, onToggle, onRemove }: ShoppingItemProps) =>
   const byLabel = item.addedBy === "me" ? "Você" : "Alex";
 
   return (
-    <div className={`group flex items-center gap-3 px-4 py-3 transition-colors hover:bg-gray-50 ${item.checked ? "opacity-60" : ""}`}>
-      <Checkbox checked={item.checked} onCheckedChange={() => onToggle(item.id)} />
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={() => onToggle(item.id)}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onToggle(item.id);
+        }
+      }}
+      className={`group flex cursor-pointer items-center gap-3 px-4 py-3 transition-colors hover:bg-gray-50 ${item.checked ? "opacity-60" : ""}`}
+    >
+      <div onClick={(event) => event.stopPropagation()}>
+        <Checkbox checked={item.checked} onCheckedChange={() => onToggle(item.id)} />
+      </div>
 
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
@@ -35,7 +48,10 @@ export const ShoppingItem = ({ item, onToggle, onRemove }: ShoppingItemProps) =>
         variant="ghost"
         size="icon"
         className="h-7 w-7 text-gray-400 hover:text-red-600 md:opacity-0 md:group-hover:opacity-100"
-        onClick={() => onRemove(item.id)}
+        onClick={(event) => {
+          event.stopPropagation();
+          onRemove(item.id);
+        }}
       >
         <Trash2 className="h-4 w-4" />
       </Button>
