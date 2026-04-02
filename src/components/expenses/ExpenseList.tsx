@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useExpenseFilters, quickFilterLabels, type QuickFilter } from "@/hooks/useExpenseFilters";
-import { expenseCategoryOptions, expenseStatusOptions } from "@/lib/expense";
+import { expenseCategoryLabelMap, expenseCategoryOptions, expenseCategoryStyleMap, expenseStatusOptions } from "@/lib/expense";
 import { formatCurrencyBRLFromCents } from "@/lib/formatters";
 import {
   Select,
@@ -114,6 +114,17 @@ export const ExpenseList = ({ expenses, onAddExpenseClick, onSettleUpClick }: Ex
                 </Button>
               );
             })}
+          </div>
+
+          <div className="border-t pt-3">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Categorias</p>
+            <div className="flex flex-wrap gap-2">
+              {expenseCategoryOptions.map((option) => (
+                <Badge key={option.value} className={expenseCategoryStyleMap[option.value].badgeClassName}>
+                  {expenseCategoryLabelMap[option.value]}
+                </Badge>
+              ))}
+            </div>
           </div>
         </CardContent>
       </Card>

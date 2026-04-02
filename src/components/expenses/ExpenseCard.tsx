@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { expenseCategoryLabelMap, expenseStatusLabelMap, getMyShare } from "@/lib/expense";
+import { expenseCategoryLabelMap, expenseCategoryStyleMap, expenseStatusLabelMap, getMyShare } from "@/lib/expense";
 import { formatCurrencyBRLFromCents, formatDateBR } from "@/lib/formatters";
 import type { Expense, ExpenseStatus } from "@/types/expense";
 import { CalendarDays, Eye, MoreVertical, Receipt, UserRound } from "lucide-react";
@@ -41,7 +41,7 @@ export const ExpenseCard = ({ expense }: ExpenseCardProps) => {
         </div>
 
         <div className="mt-2 flex flex-wrap items-center gap-2">
-          <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100">{expenseCategoryLabelMap[expense.category]}</Badge>
+          <Badge className={expenseCategoryStyleMap[expense.category].badgeClassName}>{expenseCategoryLabelMap[expense.category]}</Badge>
           <Badge className={statusClassMap[expense.status]}>{expenseStatusLabelMap[expense.status]}</Badge>
           <span className="inline-flex items-center gap-1 text-xs text-gray-500">
             <UserRound className="h-3.5 w-3.5" />
@@ -71,7 +71,7 @@ export const ExpenseCard = ({ expense }: ExpenseCardProps) => {
               <UserRound className="h-3.5 w-3.5" />
               {expense.paidBy === "me" ? "Você" : expense.partnerName}
             </span>
-            <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100">{expenseCategoryLabelMap[expense.category]}</Badge>
+            <Badge className={expenseCategoryStyleMap[expense.category].badgeClassName}>{expenseCategoryLabelMap[expense.category]}</Badge>
           </div>
         </div>
 

@@ -16,8 +16,9 @@ import { useNavigate } from "react-router-dom";
 import { SettleUpModal } from "@/components/expenses/SettleUpModal";
 import { AddExpenseModal } from "@/components/expenses/AddExpenseModal";
 import { Button } from "@/components/ui/button";
+import { expenseCategoryLabelMap, expenseCategoryStyleMap } from "@/lib/expense";
 import { formatCurrencyBRL } from "@/lib/formatters";
-import type { Expense } from "@/types/expense";
+import type { Expense, ExpenseCategory } from "@/types/expense";
 
 const recentActivity = [
   {
@@ -53,9 +54,9 @@ const recentActivity = [
 ];
 
 const categoryBreakdown = [
-  { label: "Mercado", amount: 68000, color: "bg-blue-500" },
-  { label: "Moradia", amount: 42000, color: "bg-green-500" },
-  { label: "Casa", amount: 32000, color: "bg-purple-500" },
+  { category: "alimentacao" as ExpenseCategory, amount: 68000 },
+  { category: "moradia" as ExpenseCategory, amount: 42000 },
+  { category: "lazer" as ExpenseCategory, amount: 32000 },
 ];
 
 const Dashboard = () => {
@@ -264,10 +265,10 @@ const Dashboard = () => {
               <h3 className="mb-3 text-sm font-medium text-gray-700">Categorias de despesas</h3>
               <div className="space-y-2">
                 {categoryBreakdown.map((category) => (
-                  <div key={category.label} className="flex items-center justify-between">
+                  <div key={category.category} className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <div className={`h-3 w-3 rounded-full ${category.color}`} />
-                      <span className="text-sm text-gray-600">{category.label}</span>
+                      <div className={`h-3 w-3 rounded-full ${expenseCategoryStyleMap[category.category].dotClassName}`} />
+                      <span className="text-sm text-gray-600">{expenseCategoryLabelMap[category.category]}</span>
                     </div>
                     <span className="text-sm font-medium text-gray-900">{formatCurrencyBRL(category.amount / 100)}</span>
                   </div>
