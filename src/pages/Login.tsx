@@ -1,22 +1,84 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import axios from "axios";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Home } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Login = () => {
-  const [isLogin, setIsLogin] = useState(true);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { login, register } = useAuth();
+
+  const isLoginPath = useMemo(() => location.pathname !== "/register", [location.pathname]);
+
+  const [isLogin, setIsLogin] = useState(isLoginPath);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const navigate = useNavigate();
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    setIsLogin(isLoginPath);
+    setErrorMessage(null);
+  }, [isLoginPath]);
+
+  const getApiErrorMessage = (error: unknown) => {
+    if (!axios.isAxiosError(error)) {
+      return "Falha ao autenticar. Tente novamente.";
+    }
+
+    const message = error.response?.data?.message;
+    if (Array.isArray(message)) {
+      return message.join(" ");
+    }
+
+    if (typeof message === "string" && message.trim().length > 0) {
+      return message;
+    }
+
+    return "Falha ao autenticar. Tente novamente.";
+  };
+
+  const goToLoginTab = () => {
+    setIsLogin(true);
+    setErrorMessage(null);
+    navigate("/login");
+  };
+
+  const goToRegisterTab = () => {
+    setIsLogin(false);
+    setErrorMessage(null);
+    navigate("/register");
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // For now, navigate to dashboard
-    navigate("/dashboard");
+    setErrorMessage(null);
+    setIsSubmitting(true);
+
+    try {
+      if (isLogin) {
+        await login(email, password);
+      } else {
+        if (password !== confirmPassword) {
+          setErrorMessage("As senhas nao coincidem.");
+          return;
+        }
+
+        await register(name, email, password);
+      }
+
+      navigate("/dashboard");
+    } catch (error) {
+      setErrorMessage(getApiErrorMessage(error));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -36,7 +98,7 @@ const Login = () => {
           {/* Tabs */}
           <div className="flex mb-6 bg-muted rounded-lg p-1">
             <button
-              onClick={() => setIsLogin(true)}
+              onClick={goToLoginTab}
               className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${
                 isLogin
                   ? "bg-card text-foreground shadow-sm"
@@ -46,7 +108,7 @@ const Login = () => {
               Login
             </button>
             <button
-              onClick={() => setIsLogin(false)}
+              onClick={goToRegisterTab}
               className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${
                 !isLogin
                   ? "bg-card text-foreground shadow-sm"
@@ -114,8 +176,14 @@ const Login = () => {
             )}
 
             <Button type="submit" className="w-full" size="lg">
-              {isLogin ? "Sign in" : "Create account"}
+              {isSubmitting ? "Please wait..." : isLogin ? "Sign in" : "Create account"}
             </Button>
+
+            {errorMessage && (
+              <p className="text-sm text-destructive" role="alert">
+                {errorMessage}
+              </p>
+            )}
           </form>
 
           {/* Divider */}
