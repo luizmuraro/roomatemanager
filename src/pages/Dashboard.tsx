@@ -231,7 +231,7 @@ const Dashboard = () => {
           </div>
 
           <div className="rounded-2xl bg-white p-5 shadow-xl ring-1 ring-slate-100">
-            <h2 className="mb-4 text-lg font-semibold text-gray-900">Saldo da House Share</h2>
+            <h2 className="mb-4 text-lg font-semibold text-gray-900">Saldo da Share House</h2>
 
             <div className="flex items-center justify-between rounded-xl bg-slate-50 p-4 shadow-sm">
               <div className="flex items-center gap-3">

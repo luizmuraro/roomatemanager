@@ -35,7 +35,7 @@ export function AppSidebar() {
               <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center shrink-0">
                 <Home className="w-5 h-5 text-primary-foreground" />
               </div>
-              <span className="text-base font-bold text-foreground tracking-tight">House Share</span>
+              <span className="text-base font-bold text-foreground tracking-tight">Share House</span>
             </div>
             <button onClick={toggleSidebar} className="p-1.5 rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
               <PanelLeftClose className="w-4 h-4" />
