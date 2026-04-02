@@ -75,7 +75,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       await apiClient.post("/api/auth/logout");
     } finally {
       setUser(null);
-      window.location.href = "/login";
+      window.location.assign("/");
     }
   }, []);
 
