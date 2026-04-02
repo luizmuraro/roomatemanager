@@ -8,8 +8,15 @@ export const apiClient = axios.create({
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error?.response?.status === 401) {
-      window.location.href = "/login";
+    const status = error?.response?.status;
+    const requestUrl = String(error?.config?.url ?? "");
+    const pathname = window.location.pathname;
+    const isAuthRequest =
+      requestUrl.includes("/api/auth/login") || requestUrl.includes("/api/auth/register");
+    const isPublicAuthPage = pathname === "/login" || pathname === "/register";
+
+    if (status === 401 && !isAuthRequest && !isPublicAuthPage) {
+      window.location.assign("/");
     }
 
     return Promise.reject(error);
