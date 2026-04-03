@@ -1,7 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type { AxiosRequestConfig } from "axios";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiClient } from "@/lib/api-client";
 import type { ApiResponse, Household } from "@/types/api";
+
+type HouseholdRequestConfig = AxiosRequestConfig & {
+  skipAuthRedirect?: boolean;
+};
 
 type CreateHouseholdInput = {
   name: string;
@@ -30,7 +35,9 @@ export function useCreateHousehold() {
 
   return useMutation({
     mutationFn: async (payload: CreateHouseholdInput) => {
-      const response = await apiClient.post<ApiResponse<Household>>("/api/household", payload);
+      const response = await apiClient.post<ApiResponse<Household>>("/api/household", payload, {
+        skipAuthRedirect: true,
+      } as HouseholdRequestConfig);
       return response.data;
     },
     onSuccess: async () => {
@@ -46,7 +53,9 @@ export function useJoinHousehold() {
 
   return useMutation({
     mutationFn: async (payload: JoinHouseholdInput) => {
-      const response = await apiClient.post<ApiResponse<Household>>("/api/household/join", payload);
+      const response = await apiClient.post<ApiResponse<Household>>("/api/household/join", payload, {
+        skipAuthRedirect: true,
+      } as HouseholdRequestConfig);
       return response.data;
     },
     onSuccess: async () => {
