@@ -14,9 +14,10 @@ apiClient.interceptors.response.use(
     const isAuthRequest =
       requestUrl.includes("/api/auth/login") || requestUrl.includes("/api/auth/register");
     const isPublicAuthPage = pathname === "/login" || pathname === "/register";
+    const isAuthBootstrapRequest = requestUrl.includes("/api/auth/me");
 
-    if (status === 401 && !isAuthRequest && !isPublicAuthPage) {
-      window.location.assign("/");
+    if (status === 401 && !isAuthRequest && !isPublicAuthPage && !isAuthBootstrapRequest) {
+      window.location.replace("/login");
     }
 
     return Promise.reject(error);
