@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ArrowDown,
   ArrowUp,
@@ -13,60 +13,105 @@ import {
   ShoppingBasket,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { SettleUpModal } from "@/components/expenses/SettleUpModal";
 import { AddExpenseModal } from "@/components/expenses/AddExpenseModal";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { expenseCategoryLabelMap, expenseCategoryStyleMap } from "@/lib/expense";
-import { formatCurrencyBRL } from "@/lib/formatters";
-import type { Expense, ExpenseCategory } from "@/types/expense";
+import { formatCurrencyBRL, formatCurrencyBRLFromCents, formatDateBR } from "@/lib/formatters";
+import { getApiErrorMessage } from "@/lib/api-errors";
+import { useAuth } from "@/contexts/AuthContext";
+import { useCreateExpense, useExpenses, useExpenseSummary } from "@/hooks/useExpenses";
+import { useHousehold } from "@/hooks/useHousehold";
+import type { ExpenseCategory } from "@/types/expense";
 
-const recentActivity = [
-  {
-    id: 1,
-    description: "Compras do mercado",
-    paidBy: "Alex",
-    amount: 127.8,
-    date: "Há 2 horas",
-    type: "debit" as const,
-    icon: ShoppingBasket,
-    iconClass: "bg-blue-100 text-blue-600",
-  },
-  {
-    id: 2,
-    description: "Conta de luz",
-    paidBy: "Você",
-    amount: 180,
-    date: "Ontem",
-    type: "credit" as const,
-    icon: Bolt,
-    iconClass: "bg-green-100 text-green-600",
-  },
-  {
-    id: 3,
-    description: "Café e lanches",
-    paidBy: "Alex",
-    amount: 45.2,
-    date: "Há 2 dias",
-    type: "debit" as const,
-    icon: Receipt,
-    iconClass: "bg-orange-100 text-orange-600",
-  },
-];
+const categoryIconMap: Record<ExpenseCategory, typeof ShoppingBasket> = {
+  alimentacao: ShoppingBasket,
+  moradia: Bolt,
+  transporte: CreditCard,
+  saude: Receipt,
+  lazer: PiggyBank,
+  outros: Receipt,
+};
 
-const categoryBreakdown = [
-  { category: "alimentacao" as ExpenseCategory, amount: 68000 },
-  { category: "moradia" as ExpenseCategory, amount: 42000 },
-  { category: "lazer" as ExpenseCategory, amount: 32000 },
-];
+const categoryColorMap: Record<ExpenseCategory, string> = {
+  alimentacao: "bg-blue-100 text-blue-600",
+  moradia: "bg-green-100 text-green-600",
+  transporte: "bg-indigo-100 text-indigo-600",
+  saude: "bg-red-100 text-red-600",
+  lazer: "bg-orange-100 text-orange-600",
+  outros: "bg-slate-100 text-slate-600",
+};
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [isAddExpenseOpen, setIsAddExpenseOpen] = useState(false);
   const [isSettleUpOpen, setIsSettleUpOpen] = useState(false);
-  const [yourBalance, setYourBalance] = useState(-245.5);
+  const summaryQuery = useExpenseSummary();
+  const expensesQuery = useExpenses();
+  const householdQuery = useHousehold();
+  const createExpense = useCreateExpense();
 
-  const totalSpent = 1850;
-  const yourShare = 925;
+  useEffect(() => {
+    if (summaryQuery.isError) {
+      toast.error(getApiErrorMessage(summaryQuery.error, "Falha ao carregar resumo de despesas."));
+    }
+  }, [summaryQuery.isError, summaryQuery.error]);
+
+  useEffect(() => {
+    if (expensesQuery.isError) {
+      toast.error(getApiErrorMessage(expensesQuery.error, "Falha ao carregar despesas recentes."));
+    }
+  }, [expensesQuery.isError, expensesQuery.error]);
+
+  useEffect(() => {
+    if (householdQuery.isError) {
+      toast.error(getApiErrorMessage(householdQuery.error, "Falha ao carregar dados da casa."));
+    }
+  }, [householdQuery.isError, householdQuery.error]);
+
+  const allExpenses = expensesQuery.data?.data ?? [];
+  const recentExpenses = useMemo(() => allExpenses.slice(0, 5), [allExpenses]);
+
+  const categoryBreakdown = useMemo(() => {
+    const totals = new Map<ExpenseCategory, number>();
+
+    for (const expense of allExpenses) {
+      const current = totals.get(expense.category) ?? 0;
+      totals.set(expense.category, current + expense.amount);
+    }
+
+    return Array.from(totals.entries())
+      .map(([category, amount]) => ({ category, amount }))
+      .sort((a, b) => b.amount - a.amount)
+      .slice(0, 3);
+  }, [allExpenses]);
+
+  const summaryData = summaryQuery.data?.data;
+  const myMember = summaryData?.members.find((member) => member.id === user?.id);
+  const yourBalanceCents = myMember?.balanceCents ?? 0;
+  const yourBalance = yourBalanceCents / 100;
+
+  const yourShare = useMemo(() => {
+    if (!user) return 0;
+
+    return allExpenses.reduce((acc, expense) => {
+      const payerShare = Math.round(expense.amount * expense.splitRatio);
+      const myShareInCents = expense.paidBy === user.id ? payerShare : expense.amount - payerShare;
+      return acc + myShareInCents;
+    }, 0);
+  }, [allExpenses, user]);
+
+  const totalSpent = useMemo(
+    () => allExpenses.reduce((acc, expense) => acc + expense.amount, 0),
+    [allExpenses],
+  );
+
+  const householdData = householdQuery.data?.data;
+  const partner = householdData?.members.find((member) => member.id !== user?.id) ?? null;
+
   const owes = yourBalance < 0;
   const isSettled = yourBalance === 0;
 
@@ -107,22 +152,34 @@ const Dashboard = () => {
     },
   ];
 
-  const handleAddExpense = (_expense: Expense) => {
-    setIsAddExpenseOpen(false);
-  };
+  const handleAddExpense = async (expense: {
+    description: string;
+    amount: number;
+    category: ExpenseCategory;
+    paidBy: "me" | "partner";
+    splitRatio: number;
+    date: string;
+  }) => {
+    if (!user || !partner) {
+      toast.error("Nao foi possivel identificar os membros da casa.");
+      return;
+    }
 
-  const handleConfirmSettleUp = (amount: number) => {
-    setYourBalance((prev) => {
-      if (prev < 0) {
-        return Math.min(0, prev + amount);
-      }
+    const paidBy = expense.paidBy === "me" ? user.id : partner.id;
 
-      if (prev > 0) {
-        return Math.max(0, prev - amount);
-      }
-
-      return 0;
-    });
+    try {
+      await createExpense.mutateAsync({
+        description: expense.description,
+        amount: expense.amount,
+        category: expense.category,
+        paidBy,
+        splitRatio: expense.splitRatio,
+        date: expense.date,
+      });
+      setIsAddExpenseOpen(false);
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, "Falha ao adicionar despesa."));
+    }
   };
 
   return (
@@ -145,11 +202,15 @@ const Dashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm opacity-80">Seu balanço</p>
-                <p className="mt-1 text-2xl font-bold">
-                  {owes ? "-" : isSettled ? "" : "+"}
-                  {formatCurrencyBRL(Math.abs(yourBalance))}
-                </p>
-                <p className="mt-1 text-sm opacity-80">{isSettled ? "Contas em dia" : owes ? "Você deve" : "Devem para você"}</p>
+                {summaryQuery.isLoading ? (
+                  <Skeleton className="mt-2 h-8 w-36 bg-primary-foreground/30" />
+                ) : (
+                  <p className="mt-1 text-2xl font-bold">
+                    {owes ? "-" : isSettled ? "" : "+"}
+                    {formatCurrencyBRL(Math.abs(yourBalance))}
+                  </p>
+                )}
+                <p className="mt-1 text-sm opacity-80">{isSettled ? "Contas em dia" : owes ? "Voce deve" : "Devem para voce"}</p>
               </div>
               {owes ? <ArrowDown className="h-6 w-6 opacity-90" /> : <ArrowUp className="h-6 w-6 opacity-90" />}
             </div>
@@ -159,7 +220,11 @@ const Dashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm opacity-80">Total gasto</p>
-                <p className="mt-1 text-2xl font-bold">{formatCurrencyBRL(totalSpent)}</p>
+                {expensesQuery.isLoading ? (
+                  <Skeleton className="mt-2 h-8 w-32 bg-primary-foreground/30" />
+                ) : (
+                  <p className="mt-1 text-2xl font-bold">{formatCurrencyBRLFromCents(totalSpent)}</p>
+                )}
                 <p className="mt-1 text-sm opacity-80">Neste mês</p>
               </div>
               <CreditCard className="h-6 w-6 opacity-90" />
@@ -170,7 +235,11 @@ const Dashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm opacity-80">Sua parte</p>
-                <p className="mt-1 text-2xl font-bold">{formatCurrencyBRL(yourShare)}</p>
+                {expensesQuery.isLoading ? (
+                  <Skeleton className="mt-2 h-8 w-32 bg-primary-foreground/30" />
+                ) : (
+                  <p className="mt-1 text-2xl font-bold">{formatCurrencyBRLFromCents(yourShare)}</p>
+                )}
                 <p className="mt-1 text-sm opacity-80">50% do total</p>
               </div>
               <PiggyBank className="h-6 w-6 opacity-90" />
@@ -211,22 +280,45 @@ const Dashboard = () => {
               <button className="text-sm font-medium text-blue-600 hover:text-blue-700">Ver tudo</button>
             </div>
             <div className="space-y-4">
-              {recentActivity.map((item) => (
-                <div key={item.id} className="flex items-start gap-3">
-                  <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${item.iconClass}`}>
-                    <item.icon className="h-4 w-4" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-gray-900">{item.description}</p>
-                    <p className="text-sm text-gray-500">Adicionado por {item.paidBy} • {formatCurrencyBRL(item.amount)}</p>
-                    <p className="mt-1 text-xs text-gray-400">{item.date}</p>
-                  </div>
-                  <span className={`text-sm font-medium ${item.type === "credit" ? "text-green-600" : "text-red-600"}`}>
-                    {item.type === "credit" ? "+" : "-"}
-                    {formatCurrencyBRL(item.amount / 2)}
-                  </span>
-                </div>
-              ))}
+              {expensesQuery.isLoading
+                ? Array.from({ length: 3 }).map((_, index) => (
+                    <div key={index} className="flex items-start gap-3">
+                      <Skeleton className="h-8 w-8 rounded-full" />
+                      <div className="min-w-0 flex-1 space-y-1">
+                        <Skeleton className="h-4 w-40" />
+                        <Skeleton className="h-3 w-52" />
+                        <Skeleton className="h-3 w-20" />
+                      </div>
+                      <Skeleton className="h-4 w-16" />
+                    </div>
+                  ))
+                : recentExpenses.map((item) => {
+                    const Icon = categoryIconMap[item.category] ?? Receipt;
+                    const iconClass = categoryColorMap[item.category] ?? "bg-slate-100 text-slate-600";
+                    const paidByMe = item.paidBy === user?.id;
+                    const payerShare = Math.round(item.amount * item.splitRatio);
+                    const myShare = paidByMe ? payerShare : item.amount - payerShare;
+                    const payerName = item.paidBy === user?.id ? "Voce" : partner?.name ?? "Parceiro";
+
+                    return (
+                      <div key={item.id} className="flex items-start gap-3">
+                        <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${iconClass}`}>
+                          <Icon className="h-4 w-4" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium text-gray-900">{item.description}</p>
+                          <p className="text-sm text-gray-500">
+                            Adicionado por {payerName} • {formatCurrencyBRLFromCents(item.amount)}
+                          </p>
+                          <p className="mt-1 text-xs text-gray-400">{formatDateBR(item.date)}</p>
+                        </div>
+                        <span className={`text-sm font-medium ${paidByMe ? "text-green-600" : "text-red-600"}`}>
+                          {paidByMe ? "+" : "-"}
+                          {formatCurrencyBRLFromCents(myShare)}
+                        </span>
+                      </div>
+                    );
+                  })}
             </div>
           </div>
 
@@ -236,17 +328,18 @@ const Dashboard = () => {
             <div className="flex items-center justify-between rounded-xl bg-slate-50 p-4 shadow-sm">
               <div className="flex items-center gap-3">
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-600">
-                  <span className="text-sm font-semibold text-white">A</span>
+                  <span className="text-sm font-semibold text-white">{partner?.name?.[0] ?? "?"}</span>
                 </div>
                 <div>
-                  <p className="font-medium text-gray-900">Alex Silva</p>
+                  {householdQuery.isLoading ? <Skeleton className="h-4 w-28" /> : <p className="font-medium text-gray-900">{partner?.name ?? "Sem parceiro"}</p>}
                   <p className="text-sm text-gray-500">Seu parceiro de casa</p>
+                  {householdData?.name ? <p className="text-xs text-gray-500">{householdData.name}</p> : null}
                 </div>
               </div>
 
               <div className="text-right">
                 <p className={`text-lg font-bold ${owes ? "text-red-600" : "text-green-600"}`}>
-                  {isSettled ? "Tudo certo: " : owes ? "Você deve " : "Devem para você "}
+                  {isSettled ? "Tudo certo: " : owes ? "Voce deve " : "Devem para voce "}
                   {formatCurrencyBRL(Math.abs(yourBalance))}
                 </p>
                 {owes && (
@@ -255,7 +348,7 @@ const Dashboard = () => {
                     className="mt-2 h-8 bg-blue-600 px-3 text-xs hover:bg-blue-700"
                     onClick={() => setIsSettleUpOpen(true)}
                   >
-                    Fazer pagamento
+                    Registrar pagamento
                   </Button>
                 )}
               </div>
@@ -264,15 +357,22 @@ const Dashboard = () => {
             <div className="mt-5 rounded-xl bg-white p-1">
               <h3 className="mb-3 text-sm font-medium text-gray-700">Categorias de despesas</h3>
               <div className="space-y-2">
-                {categoryBreakdown.map((category) => (
+                {expensesQuery.isLoading
+                  ? Array.from({ length: 3 }).map((_, index) => (
+                      <div key={index} className="flex items-center justify-between">
+                        <Skeleton className="h-4 w-28" />
+                        <Skeleton className="h-4 w-16" />
+                      </div>
+                    ))
+                  : categoryBreakdown.map((category) => (
                   <div key={category.category} className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <div className={`h-3 w-3 rounded-full ${expenseCategoryStyleMap[category.category].dotClassName}`} />
                       <span className="text-sm text-gray-600">{expenseCategoryLabelMap[category.category]}</span>
                     </div>
-                    <span className="text-sm font-medium text-gray-900">{formatCurrencyBRL(category.amount / 100)}</span>
+                    <span className="text-sm font-medium text-gray-900">{formatCurrencyBRLFromCents(category.amount)}</span>
                   </div>
-                ))}
+                    ))}
               </div>
             </div>
           </div>
@@ -283,14 +383,14 @@ const Dashboard = () => {
         open={isAddExpenseOpen}
         onOpenChange={setIsAddExpenseOpen}
         onAddExpense={handleAddExpense}
-        partnerName="Alex Silva"
+        partnerName={partner?.name ?? "Parceiro"}
       />
       <SettleUpModal
         open={isSettleUpOpen}
         onOpenChange={setIsSettleUpOpen}
         currentBalance={yourBalance}
-        partnerName="Alex Silva"
-        onConfirmPayment={handleConfirmSettleUp}
+        partnerName={partner?.name ?? "Parceiro"}
+        onConfirmPayment={() => setIsSettleUpOpen(false)}
       />
     </div>
   );

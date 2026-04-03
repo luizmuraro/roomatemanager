@@ -2,15 +2,16 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import type { ShoppingItem as ShoppingItemType } from "@/types/shopping";
-import { Trash2 } from "lucide-react";
+import { PencilLine, Trash2 } from "lucide-react";
 
 interface ShoppingItemProps {
   item: ShoppingItemType;
   onToggle: (id: string) => void;
   onRemove: (id: string) => void;
+  onEdit: (id: string) => void;
 }
 
-export const ShoppingItem = ({ item, onToggle, onRemove }: ShoppingItemProps) => {
+export const ShoppingItem = ({ item, onToggle, onRemove, onEdit }: ShoppingItemProps) => {
   const byLabel = item.addedBy === "me" ? "Você" : "Alex";
 
   return (
@@ -43,6 +44,18 @@ export const ShoppingItem = ({ item, onToggle, onRemove }: ShoppingItemProps) =>
       <span className={`text-xs ${item.checked ? "text-green-600" : "text-gray-500"}`}>
         {item.checked ? "Comprado" : byLabel}
       </span>
+
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-7 w-7 text-gray-400 hover:text-blue-600 md:opacity-0 md:group-hover:opacity-100"
+        onClick={(event) => {
+          event.stopPropagation();
+          onEdit(item.id);
+        }}
+      >
+        <PencilLine className="h-4 w-4" />
+      </Button>
 
       <Button
         variant="ghost"

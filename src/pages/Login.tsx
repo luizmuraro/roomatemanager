@@ -1,16 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
-import axios from "axios";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Home } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { getApiErrorMessage } from "@/lib/api-errors";
 
 const Login = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { login, register } = useAuth();
+  const { login, register, user } = useAuth();
 
   const isLoginPath = useMemo(() => location.pathname !== "/register", [location.pathname]);
 
@@ -27,22 +27,9 @@ const Login = () => {
     setErrorMessage(null);
   }, [isLoginPath]);
 
-  const getApiErrorMessage = (error: unknown) => {
-    if (!axios.isAxiosError(error)) {
-      return "Falha ao autenticar. Tente novamente.";
-    }
-
-    const message = error.response?.data?.message;
-    if (Array.isArray(message)) {
-      return message.join(" ");
-    }
-
-    if (typeof message === "string" && message.trim().length > 0) {
-      return message;
-    }
-
-    return "Falha ao autenticar. Tente novamente.";
-  };
+  if (user) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   const goToLoginTab = () => {
     setIsLogin(true);
@@ -73,9 +60,8 @@ const Login = () => {
         await register(name, email, password);
       }
 
-      navigate("/dashboard");
     } catch (error) {
-      setErrorMessage(getApiErrorMessage(error));
+      setErrorMessage(getApiErrorMessage(error, "Falha ao autenticar. Tente novamente."));
     } finally {
       setIsSubmitting(false);
     }
