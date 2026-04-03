@@ -3,12 +3,19 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import type { ShoppingItem as ShoppingItemType } from "@/types/shopping";
 import { ListChecks, Plus, Trash2 } from "lucide-react";
 import { ShoppingItem } from "./ShoppingItem";
 
 interface ShoppingListProps {
-  initialItems: ShoppingItemType[];
+  items: ShoppingItemType[];
+  isLoading: boolean;
+  onAddItem: (name: string) => void;
+  onToggleItem: (id: string) => void;
+  onEditItem: (id: string) => void;
+  onRemoveItem: (id: string) => void;
+  onClearCompleted: () => void;
 }
 
 type FilterType = "all" | "pending" | "completed";
@@ -23,8 +30,15 @@ const getItemEmoji = (name: string) => {
   return "📦";
 };
 
-export const ShoppingList = ({ initialItems }: ShoppingListProps) => {
-  const [items, setItems] = useState<ShoppingItemType[]>(initialItems);
+export const ShoppingList = ({
+  items,
+  isLoading,
+  onAddItem,
+  onToggleItem,
+  onEditItem,
+  onRemoveItem,
+  onClearCompleted,
+}: ShoppingListProps) => {
   const [quickAdd, setQuickAdd] = useState("");
   const [filter, setFilter] = useState<FilterType>("all");
 
@@ -45,30 +59,8 @@ export const ShoppingList = ({ initialItems }: ShoppingListProps) => {
     const value = quickAdd.trim();
     if (!value) return;
 
-    const newItem: ShoppingItemType = {
-      id: `shop-${Date.now()}`,
-      name: value,
-      quantity: 1,
-      unit: "un",
-      checked: false,
-      addedBy: "me",
-      emoji: getItemEmoji(value),
-    };
-
-    setItems((prev) => [newItem, ...prev]);
+    onAddItem(value);
     setQuickAdd("");
-  };
-
-  const toggleItem = (id: string) => {
-    setItems((prev) => prev.map((item) => (item.id === id ? { ...item, checked: !item.checked } : item)));
-  };
-
-  const removeItem = (id: string) => {
-    setItems((prev) => prev.filter((item) => item.id !== id));
-  };
-
-  const clearCompleted = () => {
-    setItems((prev) => prev.filter((item) => !item.checked));
   };
 
   return (
@@ -110,7 +102,7 @@ export const ShoppingList = ({ initialItems }: ShoppingListProps) => {
             <Button variant={filter === "all" ? "default" : "outline"} onClick={() => setFilter("all")}>Todos ({stats.total})</Button>
             <Button variant={filter === "pending" ? "default" : "outline"} onClick={() => setFilter("pending")}>Pendentes ({stats.pending})</Button>
             <Button variant={filter === "completed" ? "default" : "outline"} onClick={() => setFilter("completed")}>Comprados ({stats.completed})</Button>
-            <Button variant="outline" className="ml-auto" onClick={clearCompleted}>
+            <Button variant="outline" className="ml-auto" onClick={onClearCompleted}>
               <Trash2 className="mr-1 h-4 w-4" />
               Limpar comprados
             </Button>
@@ -125,9 +117,21 @@ export const ShoppingList = ({ initialItems }: ShoppingListProps) => {
         </div>
 
         <div className="divide-y divide-gray-100">
-          {visibleItems.map((item) => (
-            <ShoppingItem key={item.id} item={item} onToggle={toggleItem} onRemove={removeItem} />
-          ))}
+          {isLoading
+            ? Array.from({ length: 5 }).map((_, index) => (
+                <div key={index} className="px-4 py-3">
+                  <Skeleton className="h-7 w-full" />
+                </div>
+              ))
+            : visibleItems.map((item) => (
+                <ShoppingItem
+                  key={item.id}
+                  item={{ ...item, emoji: getItemEmoji(item.name) }}
+                  onToggle={onToggleItem}
+                  onEdit={onEditItem}
+                  onRemove={onRemoveItem}
+                />
+              ))}
         </div>
 
         {visibleItems.length === 0 && (

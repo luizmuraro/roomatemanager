@@ -10,22 +10,12 @@ import Expenses from "./pages/Expenses.tsx";
 import Receipts from "./pages/Receipts.tsx";
 import Settings from "./pages/Settings.tsx";
 import Shopping from "./pages/Shopping.tsx";
+import Onboarding from "./pages/Onboarding.tsx";
 import { AppLayout } from "./components/AppLayout.tsx";
 import { AuthProvider } from "./contexts/AuthContext.tsx";
 
 const queryClient = new QueryClient();
 const defaultRootRoute = "/dashboard";
-
-const OnboardingPlaceholder = () => (
-  <div className="min-h-screen flex items-center justify-center p-6 text-center">
-    <div>
-      <h1 className="text-2xl font-semibold">Onboarding</h1>
-      <p className="text-muted-foreground mt-2">
-        Esta tela sera implementada na proxima etapa.
-      </p>
-    </div>
-  </div>
-);
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -38,7 +28,7 @@ const App = () => (
             <Route path="/" element={<Navigate to={defaultRootRoute} replace />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Login />} />
-            <Route path="/onboarding" element={<OnboardingPlaceholder />} />
+            <Route path="/onboarding" element={<Onboarding />} />
             <Route element={<ProtectedRoute />}>
               <Route element={<AppLayout />}>
                 <Route path="/dashboard" element={<Dashboard />} />

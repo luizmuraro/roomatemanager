@@ -3,10 +3,12 @@ import { Button } from "@/components/ui/button";
 import { expenseCategoryLabelMap, expenseCategoryStyleMap, expenseStatusLabelMap, getMyShare } from "@/lib/expense";
 import { formatCurrencyBRLFromCents, formatDateBR } from "@/lib/formatters";
 import type { Expense, ExpenseStatus } from "@/types/expense";
-import { CalendarDays, Eye, MoreVertical, Receipt, UserRound } from "lucide-react";
+import { CalendarDays, PencilLine, Receipt, Trash2, UserRound } from "lucide-react";
 
 interface ExpenseCardProps {
   expense: Expense;
+  onEdit?: (expense: Expense) => void;
+  onDelete?: (expense: Expense) => void;
 }
 
 const statusClassMap: Record<ExpenseStatus, string> = {
@@ -21,7 +23,7 @@ const rowAccentMap: Record<ExpenseStatus, string> = {
   quitado: "border-l-green-400",
 };
 
-export const ExpenseCard = ({ expense }: ExpenseCardProps) => {
+export const ExpenseCard = ({ expense, onEdit, onDelete }: ExpenseCardProps) => {
   const myShare = getMyShare(expense);
   const sharePercent = Math.round(expense.splitRatio * 100);
   const isCredit = expense.paidBy === "me";
@@ -94,11 +96,21 @@ export const ExpenseCard = ({ expense }: ExpenseCardProps) => {
         </div>
 
         <div className="col-span-2 flex items-center justify-center gap-1">
-          <Button variant="ghost" size="icon" className="h-7 w-7 text-blue-600 hover:text-blue-700">
-            <Eye className="h-4 w-4" />
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7 text-blue-600 hover:text-blue-700"
+            onClick={() => onEdit?.(expense)}
+          >
+            <PencilLine className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="icon" className="h-7 w-7 text-gray-600 hover:text-gray-700">
-            <MoreVertical className="h-4 w-4" />
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7 text-gray-600 hover:text-red-700"
+            onClick={() => onDelete?.(expense)}
+          >
+            <Trash2 className="h-4 w-4" />
           </Button>
         </div>
       </div>

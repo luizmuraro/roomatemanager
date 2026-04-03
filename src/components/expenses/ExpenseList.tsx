@@ -20,9 +20,17 @@ interface ExpenseListProps {
   expenses: Expense[];
   onAddExpenseClick: () => void;
   onSettleUpClick: () => void;
+  onEditExpense: (expense: Expense) => void;
+  onDeleteExpense: (expense: Expense) => void;
 }
 
-export const ExpenseList = ({ expenses, onAddExpenseClick, onSettleUpClick }: ExpenseListProps) => {
+export const ExpenseList = ({
+  expenses,
+  onAddExpenseClick,
+  onSettleUpClick,
+  onEditExpense,
+  onDeleteExpense,
+}: ExpenseListProps) => {
   const {
     searchTerm,
     setSearchTerm,
@@ -174,7 +182,12 @@ export const ExpenseList = ({ expenses, onAddExpenseClick, onSettleUpClick }: Ex
 
         <div className="divide-y divide-gray-100">
           {filteredExpenses.map((expense) => (
-            <ExpenseCard key={expense.id} expense={expense} />
+            <ExpenseCard
+              key={expense.id}
+              expense={expense}
+              onEdit={onEditExpense}
+              onDelete={onDeleteExpense}
+            />
           ))}
         </div>
 
