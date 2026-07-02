@@ -75,8 +75,8 @@ const Login = () => {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary mb-4">
             <Home className="w-8 h-8 text-primary-foreground" />
           </div>
-          <h1 className="text-2xl font-bold text-foreground">House Share</h1>
-          <p className="text-muted-foreground mt-1">Manage your shared expenses</p>
+          <h1 className="text-2xl font-bold text-foreground">Share House</h1>
+          <p className="text-muted-foreground mt-1">Gerencie suas despesas compartilhadas</p>
         </div>
 
         {/* Card */}
@@ -91,7 +91,7 @@ const Login = () => {
                   : "text-muted-foreground"
               }`}
             >
-              Login
+              Entrar
             </button>
             <button
               onClick={goToRegisterTab}
@@ -101,17 +101,17 @@ const Login = () => {
                   : "text-muted-foreground"
               }`}
             >
-              Register
+              Cadastrar
             </button>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {!isLogin && (
               <div className="space-y-2">
-                <Label htmlFor="name">Full name</Label>
+                <Label htmlFor="name">Nome completo</Label>
                 <Input
                   id="name"
-                  placeholder="Your name"
+                  placeholder="Seu nome"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                 />
@@ -119,18 +119,18 @@ const Login = () => {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">E-mail</Label>
               <Input
                 id="email"
                 type="email"
-                placeholder="your@email.com"
+                placeholder="seu@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">Senha</Label>
               <Input
                 id="password"
                 type="password"
@@ -142,7 +142,7 @@ const Login = () => {
 
             {!isLogin && (
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm password</Label>
+                <Label htmlFor="confirmPassword">Confirmar senha</Label>
                 <Input
                   id="confirmPassword"
                   type="password"
@@ -156,13 +156,13 @@ const Login = () => {
             {isLogin && (
               <div className="text-right">
                 <button type="button" className="text-sm text-primary hover:underline">
-                   Forgot password?
+                   Esqueceu a senha?
                 </button>
               </div>
             )}
 
             <Button type="submit" className="w-full" size="lg">
-              {isSubmitting ? "Please wait..." : isLogin ? "Sign in" : "Create account"}
+              {isSubmitting ? "Aguarde..." : isLogin ? "Entrar" : "Criar conta"}
             </Button>
 
             {errorMessage && (
@@ -178,7 +178,7 @@ const Login = () => {
               <div className="w-full border-t border-border" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-card px-2 text-muted-foreground">or continue with</span>
+              <span className="bg-card px-2 text-muted-foreground">ou continue com</span>
             </div>
           </div>
 
@@ -215,10 +215,10 @@ const Login = () => {
         </div>
 
         <p className="text-center text-xs text-muted-foreground mt-6">
-          By continuing, you agree to our{" "}
-          <button type="button" className="text-primary hover:underline">Terms of Service</button>
-          {" "}and{" "}
-          <button type="button" className="text-primary hover:underline">Privacy Policy</button>
+          Ao continuar, você concorda com nossos{" "}
+          <button type="button" className="text-primary hover:underline">Termos de Serviço</button>
+          {" "}e{" "}
+          <button type="button" className="text-primary hover:underline">Política de Privacidade</button>
         </p>
       </div>
     </div>

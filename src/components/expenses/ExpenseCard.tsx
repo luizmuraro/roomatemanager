@@ -25,7 +25,7 @@ const rowAccentMap: Record<ExpenseStatus, string> = {
 
 export const ExpenseCard = ({ expense, onEdit, onDelete }: ExpenseCardProps) => {
   const myShare = getMyShare(expense);
-  const sharePercent = Math.round(expense.splitRatio * 100);
+  const sharePercent = expense.amount > 0 ? Math.round((myShare / expense.amount) * 100) : 0;
   const isCredit = expense.paidBy === "me";
 
   return (

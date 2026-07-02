@@ -62,4 +62,9 @@ export const expenseStatusOptions: Array<{ value: ExpenseStatus; label: string }
   { value: "quitado", label: "Quitado" },
 ];
 
-export const getMyShare = (expense: Expense) => Math.round(expense.amount * expense.splitRatio);
+// `splitRatio` is the payer's share of the expense (matches the backend balance
+// math). "My share" therefore depends on whether I was the payer.
+export const getMyShare = (expense: Expense) => {
+  const payerShare = Math.round(expense.amount * expense.splitRatio);
+  return expense.paidBy === "me" ? payerShare : expense.amount - payerShare;
+};

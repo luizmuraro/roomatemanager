@@ -20,17 +20,19 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/AuthContext";
 import { useHousehold } from "@/hooks/useHousehold";
-import { useCreateExpense, useDeleteExpense, useExpenses, useUpdateExpense } from "@/hooks/useExpenses";
+import { useCreateExpense, useDeleteExpense, useExpenses, useExpenseSummary, useSettleUp, useUpdateExpense } from "@/hooks/useExpenses";
 import { getApiErrorMessage } from "@/lib/api-errors";
 import type { Expense } from "@/types/expense";
 
 export const Expenses = () => {
   const { user } = useAuth();
   const expensesQuery = useExpenses();
+  const summaryQuery = useExpenseSummary();
   const householdQuery = useHousehold();
   const createExpense = useCreateExpense();
   const updateExpense = useUpdateExpense();
   const deleteExpense = useDeleteExpense();
+  const settleUp = useSettleUp();
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isSettleUpOpen, setIsSettleUpOpen] = useState(false);
@@ -47,6 +49,11 @@ export const Expenses = () => {
 
   const household = householdQuery.data?.data;
   const partner = household?.members.find((member) => member.id !== user?.id) ?? null;
+
+  // "Você deve" vem do saldo autoritativo do backend (/summary), igual ao Dashboard.
+  const summary = summaryQuery.data?.data;
+  const myBalanceCents = summary?.members.find((member) => member.id === user?.id)?.balanceCents ?? 0;
+  const youOweCents = myBalanceCents < 0 ? -myBalanceCents : 0;
 
   const expenseMap = useMemo(() => {
     const map = new Map<string, (typeof expensesQuery.data.data)[number]>();
@@ -66,24 +73,30 @@ export const Expenses = () => {
       splitRatio: expense.splitRatio,
       date: expense.date,
       partnerName: partner?.name ?? "Parceiro",
-      status: expense.paidBy === user?.id ? "quitado" : "pendente",
+      // Liquidação por despesa ainda não é persistida (settle-up é etapa futura),
+      // então nenhuma despesa é marcada como "quitado" — o saldo real vem do /summary.
+      status: "pendente",
       receiptUrl: expense.receiptUrl ?? undefined,
     }));
   }, [expensesQuery.data, partner?.name, user?.id]);
 
   const handleAddExpense = async (expense: Expense) => {
-    if (!user || !partner) {
+    if (!user) {
       toast.error("Nao foi possivel identificar os membros da casa.");
       return;
     }
+
+    // Sem parceiro, a despesa e atribuida 100% ao proprio usuario.
+    const paidById = expense.paidBy === "partner" && partner ? partner.id : user.id;
+    const splitRatio = partner ? expense.splitRatio : 1;
 
     try {
       await createExpense.mutateAsync({
         description: expense.description,
         amount: expense.amount,
         category: expense.category,
-        paidBy: expense.paidBy === "me" ? user.id : partner.id,
-        splitRatio: expense.splitRatio,
+        paidBy: paidById,
+        splitRatio,
         date: expense.date,
       });
       setIsAddModalOpen(false);
@@ -142,7 +155,10 @@ export const Expenses = () => {
   };
 
   const handleConfirmSettleUp = () => {
-    toast.info("A baixa de pagamento por despesa sera adicionada na proxima etapa.");
+    settleUp.mutate(undefined, {
+      onSuccess: () => setIsSettleUpOpen(false),
+      onError: (error) => toast.error(getApiErrorMessage(error, "Falha ao registrar pagamento.")),
+    });
   };
 
   return (
@@ -157,6 +173,7 @@ export const Expenses = () => {
       ) : (
         <ExpenseList
           expenses={uiExpenses}
+          youOweCents={youOweCents}
           onAddExpenseClick={() => setIsAddModalOpen(true)}
           onSettleUpClick={() => setIsSettleUpOpen(true)}
           onEditExpense={handleOpenEdit}
@@ -169,13 +186,15 @@ export const Expenses = () => {
         onOpenChange={setIsAddModalOpen}
         onAddExpense={handleAddExpense}
         partnerName={partner?.name ?? "Parceiro"}
+        hasPartner={Boolean(partner)}
       />
       <SettleUpModal
         open={isSettleUpOpen}
         onOpenChange={setIsSettleUpOpen}
-        currentBalance={0}
+        currentBalance={myBalanceCents / 100}
         partnerName={partner?.name ?? "Parceiro"}
         onConfirmPayment={handleConfirmSettleUp}
+        isConfirming={settleUp.isPending}
       />
 
       <Dialog open={Boolean(editingExpense)} onOpenChange={(open) => !open && setEditingExpense(null)}>

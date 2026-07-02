@@ -65,6 +65,29 @@ export function useJoinHousehold() {
   });
 }
 
+export function useLeaveHousehold() {
+  const queryClient = useQueryClient();
+  const { refreshUser } = useAuth();
+
+  return useMutation({
+    mutationFn: async () => {
+      const response = await apiClient.post<ApiResponse<{ left: true }>>(
+        "/api/household/leave",
+        undefined,
+        { skipAuthRedirect: true } as HouseholdRequestConfig,
+      );
+      return response.data;
+    },
+    onSuccess: async () => {
+      // householdId becomes null -> ProtectedRoute sends the user to /onboarding.
+      await refreshUser();
+      queryClient.removeQueries({ queryKey: ["household"] });
+      queryClient.removeQueries({ queryKey: ["expenses"] });
+      queryClient.removeQueries({ queryKey: ["shopping"] });
+    },
+  });
+}
+
 export function useGenerateInvite() {
   const queryClient = useQueryClient();
 

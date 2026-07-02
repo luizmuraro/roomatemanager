@@ -7,25 +7,30 @@ Primary UX language is Portuguese (Brasil), with BRL currency formatting.
 
 ## Current Status
 
-Project stage: Frontend MVP (no backend yet)
+Project stage: Full-stack MVP — integrated with the NestJS backend (`../sharehouse-backend`).
 
-Implemented:
-- Authentication screens: Login
-- Main navigation shell: Sidebar (desktop) + Bottom Nav (mobile)
+Implemented (wired to the API):
+- Authentication: login / register / logout via httpOnly cookie session
+- Onboarding: create a household or join by invite code
+- Main navigation shell: Sidebar (desktop, with logout) + Bottom Nav (mobile)
 - Dashboard with summaries and quick actions
-- Expenses flow with filters and add-expense modal (2 steps)
-- Settle-up flow with confirmation modal and partial payment support
-- Shopping list screen
-- Receipt gallery screen
-- Settings screen with tabs
+- Expenses flow with filters and add-expense modal (2 steps); solo & paired households
+- Settle-up: full-balance settlement that clears the balance (persisted)
+- Shopping list (CRUD + clear checked)
+- Household: invite code, and leaving a household
+- Settings: profile update, invite management
 
-Data source right now:
-- Mock/local frontend state only
-- No API integration yet
+Still mock/local (not yet wired):
+- Receipts (gallery is mock; upload storage pending — see Known Limitations)
+- Settings "Privacidade" and "Notificações" tabs
+
+Data source:
+- Backend REST API; money is integer cents; auth is an httpOnly `access_token` cookie
 
 ## Routes
 
-- /login
+- /login (and /register)
+- /onboarding
 - /dashboard
 - /expenses
 - /shopping
@@ -34,7 +39,7 @@ Data source right now:
 
 Notes:
 - / redirects to /dashboard
-- /register currently redirects to /login
+- Protected routes redirect to /login when signed out, or to /onboarding when the user has no household
 
 ## Tech Stack
 
@@ -87,7 +92,9 @@ C:\Program Files\nodejs\npm.cmd run dev
 
 Default local URL:
 
-http://localhost:5173
+http://localhost:8080
+
+The API base URL comes from `VITE_API_URL` in `.env` (set it to `http://localhost:3000` for local dev — without `/api`). The backend lives in `../sharehouse-backend`; run it separately.
 
 ## Available Scripts
 
@@ -109,16 +116,17 @@ http://localhost:5173
 
 ## Known Limitations
 
-- No backend persistence yet
-- No authentication backend integration yet
-- Some flows are optimistic/local-state only
+- Receipts are still mock/local — upload storage (Cloudflare R2) is not wired yet
+- Settle-up is full-balance only; partial payments are not supported yet
+- Settings "Privacidade" and "Notificações" tabs are placeholders
+- No frontend e2e tests yet (Playwright scaffolded, no specs); backend has unit tests for balance math + the household cap
 
 ## Next Suggested Steps
 
-1. Add backend/API integration for auth, expenses, shopping, receipts, settings
-2. Persist settle-up transactions and expense payment history
-3. Add end-to-end tests for key user flows
-4. Add CI checks for lint, tests, and build
+1. Wire receipts to Cloudflare R2 and attach them to expenses
+2. Add partial settle-up payments
+3. Implement the Settings privacy/notification preferences
+4. Add frontend component/e2e tests and CI checks (lint, tests, build)
 
 ## License
 

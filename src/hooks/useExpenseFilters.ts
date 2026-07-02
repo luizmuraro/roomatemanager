@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react";
-import { getMyShare } from "@/lib/expense";
 import type { Expense, ExpenseCategory, ExpenseStatus } from "@/types/expense";
 
 export type QuickFilter = "all" | "me-paid" | "partner-paid" | "high-value" | "pending";
@@ -41,12 +40,9 @@ export const useExpenseFilters = (expenses: Expense[]) => {
 
   const summary = useMemo(() => {
     const totalAmount = filteredExpenses.reduce((acc, item) => acc + item.amount, 0);
-    const youOwe = filteredExpenses
-      .filter((item) => item.paidBy === "partner" && item.status !== "quitado")
-      .reduce((acc, item) => acc + getMyShare(item), 0);
     const pendingCount = filteredExpenses.filter((item) => item.status !== "quitado").length;
 
-    return { totalAmount, youOwe, pendingCount };
+    return { totalAmount, pendingCount };
   }, [filteredExpenses]);
 
   return {

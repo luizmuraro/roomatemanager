@@ -65,6 +65,22 @@ export function useExpenseSummary() {
   });
 }
 
+export function useSettleUp() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async () => {
+      const response = await apiClient.post<ApiResponse<ExpenseSummary>>("/api/expenses/settle");
+      return response.data;
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["expenses"] });
+      await queryClient.invalidateQueries({ queryKey: ["expenses", "summary"] });
+      toast.success("Saldo quitado");
+    },
+  });
+}
+
 export function useCreateExpense() {
   const queryClient = useQueryClient();
 

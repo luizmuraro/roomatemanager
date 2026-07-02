@@ -9,16 +9,21 @@ import {
   useUpdateShoppingItem,
 } from "@/hooks/useShopping";
 import { getApiErrorMessage } from "@/lib/api-errors";
+import { useHousehold } from "@/hooks/useHousehold";
 import type { ShoppingItem } from "@/types/shopping";
 import { useMemo } from "react";
 
 export const Shopping = () => {
   const { user } = useAuth();
+  const householdQuery = useHousehold();
   const shoppingQuery = useShoppingItems();
   const createItem = useCreateShoppingItem();
   const updateItem = useUpdateShoppingItem();
   const deleteItem = useDeleteShoppingItem();
   const deleteChecked = useDeleteCheckedItems();
+
+  const partner = householdQuery.data?.data?.members.find((member) => member.id !== user?.id) ?? null;
+  const partnerName = partner?.name ?? "Parceiro";
 
   const itemsById = useMemo(() => {
     const map = new Map<string, (typeof shoppingQuery.data.data)[number]>();
@@ -102,6 +107,7 @@ export const Shopping = () => {
       <ShoppingList
         items={uiItems}
         isLoading={shoppingQuery.isLoading}
+        partnerName={partnerName}
         onAddItem={handleAdd}
         onToggleItem={handleToggle}
         onEditItem={handleEdit}

@@ -11,6 +11,7 @@ import { ShoppingItem } from "./ShoppingItem";
 interface ShoppingListProps {
   items: ShoppingItemType[];
   isLoading: boolean;
+  partnerName: string;
   onAddItem: (name: string) => void;
   onToggleItem: (id: string) => void;
   onEditItem: (id: string) => void;
@@ -33,6 +34,7 @@ const getItemEmoji = (name: string) => {
 export const ShoppingList = ({
   items,
   isLoading,
+  partnerName,
   onAddItem,
   onToggleItem,
   onEditItem,
@@ -127,6 +129,7 @@ export const ShoppingList = ({
                 <ShoppingItem
                   key={item.id}
                   item={{ ...item, emoji: getItemEmoji(item.name) }}
+                  partnerName={partnerName}
                   onToggle={onToggleItem}
                   onEdit={onEditItem}
                   onRemove={onRemoveItem}

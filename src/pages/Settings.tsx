@@ -1,27 +1,40 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Bell, Shield, User, Users } from "lucide-react";
+import { Bell, DoorOpen, LogOut, Shield, User, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
-import { useGenerateInvite, useHousehold } from "@/hooks/useHousehold";
+import { useGenerateInvite, useHousehold, useLeaveHousehold } from "@/hooks/useHousehold";
 import { useMe, useUpdateMe } from "@/hooks/useUser";
 import { getApiErrorMessage } from "@/lib/api-errors";
 
 export const Settings = () => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const meQuery = useMe();
   const householdQuery = useHousehold();
   const updateMe = useUpdateMe();
   const generateInvite = useGenerateInvite();
+  const leaveHousehold = useLeaveHousehold();
 
   const [name, setName] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isLeaveOpen, setIsLeaveOpen] = useState(false);
 
   useEffect(() => {
     const me = meQuery.data?.data;
@@ -78,6 +91,19 @@ export const Settings = () => {
     } catch (error) {
       toast.error(getApiErrorMessage(error, "Falha ao gerar novo codigo."));
     }
+  };
+
+  const handleLogout = () => {
+    // logout() limpa a sessao e redireciona; nunca rejeita.
+    setIsLoggingOut(true);
+    void logout();
+  };
+
+  const handleLeaveHousehold = () => {
+    leaveHousehold.mutate(undefined, {
+      onSuccess: () => setIsLeaveOpen(false),
+      onError: (error) => toast.error(getApiErrorMessage(error, "Falha ao sair da casa.")),
+    });
   };
 
   return (
@@ -147,6 +173,24 @@ export const Settings = () => {
               )}
             </CardContent>
           </Card>
+
+          <Card className="mt-4 rounded-lg border-gray-200 shadow-sm">
+            <CardHeader>
+              <CardTitle>Conta</CardTitle>
+              <p className="text-sm text-gray-600">Encerre sua sessão neste dispositivo.</p>
+            </CardHeader>
+            <CardContent>
+              <Button
+                variant="outline"
+                className="w-full gap-2 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 sm:w-auto"
+                onClick={handleLogout}
+                disabled={isLoggingOut}
+              >
+                <LogOut className="h-4 w-4" />
+                {isLoggingOut ? "Saindo..." : "Sair da conta"}
+              </Button>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="partner">
@@ -187,6 +231,21 @@ export const Settings = () => {
                       Gerar novo codigo
                     </Button>
                   </div>
+
+                  <div className="space-y-2 rounded-lg border border-red-200 p-3">
+                    <p className="text-sm font-medium text-gray-900">Sair da casa</p>
+                    <p className="text-sm text-gray-500">
+                      Você deixa de ver as despesas e a lista desta casa. O histórico permanece para o outro membro.
+                    </p>
+                    <Button
+                      variant="outline"
+                      className="gap-2 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+                      onClick={() => setIsLeaveOpen(true)}
+                    >
+                      <DoorOpen className="h-4 w-4" />
+                      Sair da casa
+                    </Button>
+                  </div>
                 </>
               )}
             </CardContent>
@@ -215,6 +274,30 @@ export const Settings = () => {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <AlertDialog open={isLeaveOpen} onOpenChange={setIsLeaveOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Sair da casa?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Você deixará de ver as despesas e a lista desta casa. Se houver outro membro, o histórico
+              (incluindo saldos em aberto) permanece para ele. Você poderá criar ou entrar em outra casa depois.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={leaveHousehold.isPending}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(event) => {
+                event.preventDefault();
+                handleLeaveHousehold();
+              }}
+              disabled={leaveHousehold.isPending}
+            >
+              {leaveHousehold.isPending ? "Saindo..." : "Sair da casa"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

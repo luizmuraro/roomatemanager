@@ -6,13 +6,14 @@ import { PencilLine, Trash2 } from "lucide-react";
 
 interface ShoppingItemProps {
   item: ShoppingItemType;
+  partnerName: string;
   onToggle: (id: string) => void;
   onRemove: (id: string) => void;
   onEdit: (id: string) => void;
 }
 
-export const ShoppingItem = ({ item, onToggle, onRemove, onEdit }: ShoppingItemProps) => {
-  const byLabel = item.addedBy === "me" ? "Você" : "Alex";
+export const ShoppingItem = ({ item, partnerName, onToggle, onRemove, onEdit }: ShoppingItemProps) => {
+  const byLabel = item.addedBy === "me" ? "Você" : partnerName;
 
   return (
     <div

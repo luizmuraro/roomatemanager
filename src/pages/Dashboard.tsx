@@ -22,9 +22,9 @@ import { expenseCategoryLabelMap, expenseCategoryStyleMap } from "@/lib/expense"
 import { formatCurrencyBRL, formatCurrencyBRLFromCents, formatDateBR } from "@/lib/formatters";
 import { getApiErrorMessage } from "@/lib/api-errors";
 import { useAuth } from "@/contexts/AuthContext";
-import { useCreateExpense, useExpenses, useExpenseSummary } from "@/hooks/useExpenses";
+import { useCreateExpense, useExpenses, useExpenseSummary, useSettleUp } from "@/hooks/useExpenses";
 import { useHousehold } from "@/hooks/useHousehold";
-import type { ExpenseCategory } from "@/types/expense";
+import type { Expense, ExpenseCategory } from "@/types/expense";
 
 const categoryIconMap: Record<ExpenseCategory, typeof ShoppingBasket> = {
   alimentacao: ShoppingBasket,
@@ -53,6 +53,7 @@ const Dashboard = () => {
   const expensesQuery = useExpenses();
   const householdQuery = useHousehold();
   const createExpense = useCreateExpense();
+  const settleUp = useSettleUp();
 
   useEffect(() => {
     if (summaryQuery.isError) {
@@ -152,28 +153,30 @@ const Dashboard = () => {
     },
   ];
 
-  const handleAddExpense = async (expense: {
-    description: string;
-    amount: number;
-    category: ExpenseCategory;
-    paidBy: "me" | "partner";
-    splitRatio: number;
-    date: string;
-  }) => {
-    if (!user || !partner) {
+  const handleConfirmSettleUp = () => {
+    settleUp.mutate(undefined, {
+      onSuccess: () => setIsSettleUpOpen(false),
+      onError: (error) => toast.error(getApiErrorMessage(error, "Falha ao registrar pagamento.")),
+    });
+  };
+
+  const handleAddExpense = async (expense: Expense) => {
+    if (!user) {
       toast.error("Nao foi possivel identificar os membros da casa.");
       return;
     }
 
-    const paidBy = expense.paidBy === "me" ? user.id : partner.id;
+    // Sem parceiro, a despesa e atribuida 100% ao proprio usuario.
+    const paidById = expense.paidBy === "partner" && partner ? partner.id : user.id;
+    const splitRatio = partner ? expense.splitRatio : 1;
 
     try {
       await createExpense.mutateAsync({
         description: expense.description,
         amount: expense.amount,
         category: expense.category,
-        paidBy,
-        splitRatio: expense.splitRatio,
+        paidBy: paidById,
+        splitRatio,
         date: expense.date,
       });
       setIsAddExpenseOpen(false);
@@ -277,7 +280,13 @@ const Dashboard = () => {
           <div className="rounded-2xl bg-white p-5 shadow-xl ring-1 ring-slate-100">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-lg font-semibold text-gray-900">Atividade recente</h2>
-              <button className="text-sm font-medium text-blue-600 hover:text-blue-700">Ver tudo</button>
+              <button
+                type="button"
+                className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                onClick={() => navigate("/expenses")}
+              >
+                Ver tudo
+              </button>
             </div>
             <div className="space-y-4">
               {expensesQuery.isLoading
@@ -384,13 +393,15 @@ const Dashboard = () => {
         onOpenChange={setIsAddExpenseOpen}
         onAddExpense={handleAddExpense}
         partnerName={partner?.name ?? "Parceiro"}
+        hasPartner={Boolean(partner)}
       />
       <SettleUpModal
         open={isSettleUpOpen}
         onOpenChange={setIsSettleUpOpen}
         currentBalance={yourBalance}
         partnerName={partner?.name ?? "Parceiro"}
-        onConfirmPayment={() => setIsSettleUpOpen(false)}
+        onConfirmPayment={handleConfirmSettleUp}
+        isConfirming={settleUp.isPending}
       />
     </div>
   );

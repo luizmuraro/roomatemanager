@@ -84,4 +84,3 @@ export interface ShoppingItem {
 // 2) src/types/shopping.ts usa id, addedBy como "me"|"partner" e emoji,
 //    enquanto a API retorna addedBy como id de usuario, householdId e timestamps.
 // 3) src/types/receipt.ts define recibos de UI, mas nao ha contrato de receipt no backend atual.
-// 4) src/types/settings.ts define estado de configuracoes de UI, sem endpoint equivalente mapeado aqui.

@@ -18,6 +18,7 @@ import { ExpenseCard } from "./ExpenseCard";
 
 interface ExpenseListProps {
   expenses: Expense[];
+  youOweCents: number;
   onAddExpenseClick: () => void;
   onSettleUpClick: () => void;
   onEditExpense: (expense: Expense) => void;
@@ -26,6 +27,7 @@ interface ExpenseListProps {
 
 export const ExpenseList = ({
   expenses,
+  youOweCents,
   onAddExpenseClick,
   onSettleUpClick,
   onEditExpense,
@@ -153,7 +155,7 @@ export const ExpenseList = ({
             <p className="text-xs text-gray-600">Você deve</p>
             <p className="mt-0.5 inline-flex items-center gap-2 text-lg font-bold text-red-600">
               <ArrowDown className="h-4 w-4" />
-              {formatCurrencyBRLFromCents(summary.youOwe)}
+              {formatCurrencyBRLFromCents(youOweCents)}
             </p>
           </CardContent>
         </Card>

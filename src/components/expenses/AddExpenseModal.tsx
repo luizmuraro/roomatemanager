@@ -29,6 +29,7 @@ interface AddExpenseModalProps {
   onOpenChange: (open: boolean) => void;
   onAddExpense: (expense: Expense) => void;
   partnerName: string;
+  hasPartner: boolean;
 }
 
 const getTodayBRDate = () => {
@@ -65,7 +66,7 @@ const initialDraft = (): ExpenseDraft => ({
   splitRatio: 0.5,
 });
 
-export const AddExpenseModal = ({ open, onOpenChange, onAddExpense, partnerName }: AddExpenseModalProps) => {
+export const AddExpenseModal = ({ open, onOpenChange, onAddExpense, partnerName, hasPartner }: AddExpenseModalProps) => {
   const [step, setStep] = useState<1 | 2>(1);
   const [draft, setDraft] = useState<ExpenseDraft>(initialDraft());
 
@@ -87,13 +88,23 @@ export const AddExpenseModal = ({ open, onOpenChange, onAddExpense, partnerName 
   const canContinue = draft.description.trim().length > 2 && amountCents > 0;
 
   const handleSubmit = () => {
+    // `splitRatio` armazenado = parte de quem PAGOU (convencao do backend).
+    // A UI edita "Sua parte" (draft.splitRatio); convertemos conforme quem pagou.
+    // Sem parceiro: despesa 100% do usuario (paga por "me", splitRatio 1).
+    const paidBy = hasPartner ? draft.paidBy : "me";
+    const payerShareRatio = !hasPartner
+      ? 1
+      : paidBy === "me"
+        ? draft.splitRatio
+        : 1 - draft.splitRatio;
+
     const expense: Expense = {
       id: `exp-${Date.now()}`,
       description: draft.description.trim(),
       amount: amountCents,
       category: draft.category,
-      paidBy: draft.paidBy,
-      splitRatio: draft.splitRatio,
+      paidBy,
+      splitRatio: payerShareRatio,
       date: toIsoDate(draft.date),
       partnerName,
       status: "pendente",
@@ -113,7 +124,9 @@ export const AddExpenseModal = ({ open, onOpenChange, onAddExpense, partnerName 
             </div>
             <div>
               <DialogTitle className="text-left">Adicionar nova despesa</DialogTitle>
-              <DialogDescription className="text-left">Etapa {step} de 2</DialogDescription>
+              <DialogDescription className="text-left">
+                {hasPartner ? `Etapa ${step} de 2` : "Preencha os dados da despesa"}
+              </DialogDescription>
             </div>
           </div>
         </DialogHeader>
@@ -183,21 +196,23 @@ export const AddExpenseModal = ({ open, onOpenChange, onAddExpense, partnerName 
                   />
                 </div>
 
-                <div>
-                  <Label htmlFor="expense-paid-by">Quem pagou</Label>
-                  <Select
-                    value={draft.paidBy}
-                    onValueChange={(value) => setDraft((prev) => ({ ...prev, paidBy: value as "me" | "partner" }))}
-                  >
-                    <SelectTrigger id="expense-paid-by">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="me">Você</SelectItem>
-                      <SelectItem value="partner">{partnerName}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                {hasPartner && (
+                  <div>
+                    <Label htmlFor="expense-paid-by">Quem pagou</Label>
+                    <Select
+                      value={draft.paidBy}
+                      onValueChange={(value) => setDraft((prev) => ({ ...prev, paidBy: value as "me" | "partner" }))}
+                    >
+                      <SelectTrigger id="expense-paid-by">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="me">Você</SelectItem>
+                        <SelectItem value="partner">{partnerName}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -278,9 +293,15 @@ export const AddExpenseModal = ({ open, onOpenChange, onAddExpense, partnerName 
           </Button>
 
           {step === 1 ? (
-            <Button className="bg-blue-600 hover:bg-blue-700" disabled={!canContinue} onClick={() => setStep(2)}>
-              Continuar
-            </Button>
+            hasPartner ? (
+              <Button className="bg-blue-600 hover:bg-blue-700" disabled={!canContinue} onClick={() => setStep(2)}>
+                Continuar
+              </Button>
+            ) : (
+              <Button className="bg-blue-600 hover:bg-blue-700" disabled={!canContinue} onClick={handleSubmit}>
+                Adicionar despesa
+              </Button>
+            )
           ) : (
             <Button className="bg-blue-600 hover:bg-blue-700" disabled={amountCents <= 0} onClick={handleSubmit}>
               Adicionar despesa

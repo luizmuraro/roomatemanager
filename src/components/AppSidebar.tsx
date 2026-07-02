@@ -1,6 +1,7 @@
-import { Home, Receipt, ShoppingCart, Camera, Settings, PanelLeftClose, PanelLeft } from "lucide-react";
+import { Home, Receipt, ShoppingCart, Camera, Settings, PanelLeftClose, PanelLeft, LogOut } from "lucide-react";
 import { isPathActive } from "@/lib/routes";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   Sidebar,
   SidebarContent,
@@ -24,6 +25,7 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const location = useLocation();
   const navigate = useNavigate();
+  const { logout } = useAuth();
 
   return (
     <Sidebar collapsible="icon">
@@ -68,14 +70,32 @@ export function AppSidebar() {
         </SidebarMenu>
       </SidebarContent>
 
-      {/* Expand button at the bottom when collapsed */}
-      {collapsed && (
-        <SidebarFooter className="flex items-center justify-center py-4">
-          <button onClick={toggleSidebar} className="p-2 rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
-            <PanelLeft className="w-4 h-4" />
-          </button>
-        </SidebarFooter>
-      )}
+      <SidebarFooter className="py-4">
+        <SidebarMenu className="space-y-1 px-2">
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              onClick={() => { void logout(); }}
+              className={`
+                h-10 rounded-lg transition-all cursor-pointer
+                text-muted-foreground hover:bg-muted hover:text-foreground
+                ${collapsed ? "justify-center px-0" : "px-3"}
+              `}
+            >
+              <LogOut className="h-4 w-4 shrink-0" />
+              {!collapsed && <span className="font-medium">Sair</span>}
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+
+        {/* Expand button at the bottom when collapsed */}
+        {collapsed && (
+          <div className="flex items-center justify-center pt-2">
+            <button onClick={toggleSidebar} className="p-2 rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
+              <PanelLeft className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+      </SidebarFooter>
     </Sidebar>
   );
 }
