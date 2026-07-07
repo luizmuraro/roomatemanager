@@ -1,42 +1,40 @@
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { expenseCategoryEmojiMap, expenseCategoryStyleMap } from "@/lib/expense";
 import { formatCurrencyBRLFromCents, formatDateBR } from "@/lib/formatters";
-import type { ReceiptItem } from "@/types/receipt";
-import { FileText, Link2, Unlink2 } from "lucide-react";
+import type { Receipt } from "@/types/receipt";
+import { FileText, Link2, Trash2, Unlink2 } from "lucide-react";
 
 interface ReceiptCardProps {
-  receipt: ReceiptItem;
+  receipt: Receipt;
+  onDelete?: (receipt: Receipt) => void;
 }
 
-const categoryColorClass: Record<ReceiptItem["category"], string> = {
-  mercado: "bg-green-100 text-green-700",
-  moradia: "bg-yellow-100 text-yellow-700",
-  alimentacao: "bg-orange-100 text-orange-700",
-  transporte: "bg-blue-100 text-blue-700",
-  saude: "bg-pink-100 text-pink-700",
-  outros: "bg-gray-100 text-gray-700",
-};
-
-export const ReceiptCard = ({ receipt }: ReceiptCardProps) => {
+export const ReceiptCard = ({ receipt, onDelete }: ReceiptCardProps) => {
   return (
     <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
-      <div className="flex aspect-[3/4] items-center justify-center bg-gradient-to-br from-gray-100 to-slate-200">
+      <div className="flex aspect-[3/4] items-center justify-center overflow-hidden bg-gradient-to-br from-gray-100 to-slate-200">
         {receipt.fileType === "pdf" ? (
           <FileText className="h-10 w-10 text-red-500" />
         ) : (
-          <span className="text-xs font-semibold tracking-widest text-slate-600">{receipt.previewLabel}</span>
+          <img src={receipt.fileUrl} alt={receipt.title} className="h-full w-full object-cover" />
         )}
       </div>
 
       <div className="space-y-2 p-3">
         <div className="flex items-center justify-between gap-2">
           <p className="truncate text-sm font-medium text-gray-900">{receipt.title}</p>
-          <Badge className={categoryColorClass[receipt.category]}>{receipt.categoryEmoji}</Badge>
+          <Badge className={expenseCategoryStyleMap[receipt.category].badgeClassName}>
+            {expenseCategoryEmojiMap[receipt.category]}
+          </Badge>
         </div>
 
         <div className="space-y-1 text-xs text-gray-500">
           <div className="flex items-center justify-between">
             <span>Valor:</span>
-            <span className="font-medium text-gray-900">{formatCurrencyBRLFromCents(receipt.amount)}</span>
+            <span className="font-medium text-gray-900">
+              {receipt.amount === null ? "—" : formatCurrencyBRLFromCents(receipt.amount)}
+            </span>
           </div>
           <div className="flex items-center justify-between">
             <span>Data:</span>
@@ -54,6 +52,17 @@ export const ReceiptCard = ({ receipt }: ReceiptCardProps) => {
               </span>
             )}
           </div>
+        </div>
+
+        <div className="flex justify-end">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7 text-gray-600 hover:text-red-700"
+            onClick={() => onDelete?.(receipt)}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
         </div>
       </div>
     </div>

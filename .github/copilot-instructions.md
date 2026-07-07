@@ -21,7 +21,7 @@ The reference repo contains:
 - `docs/technical-docs.md` — Full technical spec and data models.
 - `docs/screenshots/` — Design screenshots per screen.
 
-## Current State (what Lovable already built)
+## Current State (what's already built)
 ✅ Login screen (`/login`)
 ✅ Register screen (`/register`)
 ✅ Dashboard screen (`/`)
